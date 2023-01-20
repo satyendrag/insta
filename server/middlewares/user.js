@@ -8,7 +8,10 @@ exports.isLoggedIn = catchAsyncError(async (req, res, next) => {
     req.cookies.token || req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token) {
-    return next(new CustomError("Login first to access this page", 401));
+    return res.status(404).json({
+      success: false,
+      message: "Please login first.",
+    });
   }
 
   const id = jwt.verify(token, process.env.JWT_SECRET).id;
