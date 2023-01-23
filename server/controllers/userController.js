@@ -7,6 +7,25 @@ const crypto = require("crypto");
 
 exports.signup = catchAsyncError(async (req, res, next) => {
   let imageUploadResult;
+
+  const { name, email, password } = req.body;
+
+  if (!email || !name || !password) {
+    return res.status(400).json({
+      success: false,
+      message: "Name, email, and password are required",
+    });
+  }
+
+  const isUserAlreadyExist = await User.findOne({ email: email });
+
+  if (isUserAlreadyExist) {
+    return res.status(400).json({
+      success: false,
+      message: "Email already exist",
+    });
+  }
+
   if (req.files) {
     // name attribute value should be photo
     let file = req.files.photo;
@@ -16,21 +35,11 @@ exports.signup = catchAsyncError(async (req, res, next) => {
       crop: "scale",
     });
   }
-
-  const { name, email, password } = req.body;
-
-  if (!email || !name || !password) {
-    return next(new CustomError("Name, email, and password are required", 400));
-  }
-
-  const isUserAlreadyExist = await User.findOne({ email: email });
-
-  if (isUserAlreadyExist) {
-    return next(new CustomError("Email already exist", 400));
-  }
-
   if (!imageUploadResult) {
-    return next(new CustomError("Image Upload failed", 500));
+    return res.status(500).json({
+      success: false,
+      message: "Image upload failed",
+    });
   }
 
   const user = await User.create({
@@ -43,7 +52,10 @@ exports.signup = catchAsyncError(async (req, res, next) => {
     },
   });
 
-  cookieToken(res, user);
+  res.status(201).json({
+    success: true,
+    message: "Signup Successfull. Please Login",
+  });
 });
 
 exports.login = catchAsyncError(async (req, res, next) => {
@@ -51,7 +63,10 @@ exports.login = catchAsyncError(async (req, res, next) => {
 
   // checking if user provided email and password or not
   if (!email || !password) {
-    return next(new CustomError("Please provide email and password", 400));
+    return res.status(400).json({
+      success: false,
+      message: "Please Provide email and password",
+    });
   }
 
   // getting user for given email id
@@ -59,14 +74,20 @@ exports.login = catchAsyncError(async (req, res, next) => {
 
   // cheking if user exist in our database or not
   if (!user) {
-    return next(new CustomError("Invalid Email/Password", 400));
+    return res.status(400).json({
+      success: false,
+      message: "Invalid email/password",
+    });
   }
 
   // checking if password is valid or not
   const isValidUser = await user.isValidatedPassword(password);
 
   if (!isValidUser) {
-    return next(new CustomError("Invalid Email/Password", 400));
+    return res.status(400).json({
+      success: false,
+      message: "Invalid email/password",
+    });
   }
   // If everything is okay then good to go sending response to user
   cookieToken(res, user);
