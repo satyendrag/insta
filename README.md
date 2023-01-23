@@ -1,0 +1,15 @@
+# insta
+
+Add Following in server .env file
+
+DB_URL=your db url
+PORT=4000
+
+JWT_SECRET=random@3244541!2335sString
+JWT_EXPIRY=3d
+COOKIE_TIME=3
+
+CLOUDINARY_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
